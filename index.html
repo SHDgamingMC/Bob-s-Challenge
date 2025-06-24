@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bob's Challenge by suvin</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        textarea { width: 400px; height: 150px; margin-bottom: 10px; }
+        button { padding: 10px 20px; cursor: pointer; }
+        pre { background-color: #eee; padding: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Bob's Challenge</h1>
+    <p>Enter the input for Bob's Challenge in the text area below (e.g., sample input):</p>
+    <textarea id="inputArea">
+1
+4 3
+1 0 0 1</textarea>
+    <br>
+    <button onclick="runChallenge()">Run Challenge</button>
+    <h3>Output:</h3>
+    <pre id="outputArea"></pre>
+
+    <script>
+        const MOD = 1_000_000_007;
+        let fact = [];
+        let invFact = [];
+
+        function power(base, exp) {
+            let res = 1;
+            base %= MOD;
+            while (exp > 0) {
+                if (exp % 2 === 1) res = (res * base) % MOD;
+                base = (base * base) % MOD;
+                exp = Math.floor(exp / 2);
+            }
+            return res;
+        }
+
+        function precomputeFactorials(maxN) {
+            fact[0] = 1;
+            invFact[0] = 1;
+            for (let i = 1; i <= maxN; i++) {
+                fact[i] = (fact[i - 1] * i) % MOD;
+                invFact[i] = power(fact[i], MOD - 2);
+            }
+        }
+
+        function nCr(n, r) {
+            if (r < 0 || r > n) {
+                return 0;
+            }
+            let numerator = fact[n];
+            let denominator1 = invFact[r];
+            let denominator2 = invFact[n - r];
+
+            let result = (numerator * denominator1) % MOD;
+            result = (result * denominator2) % MOD;
+            return result;
+        }
+
+        
+        function solveChallenge(inputText) {
+            const lines = inputText.trim().split('\n');
+            let lineIndex = 0;
+            const t = parseInt(lines[lineIndex++]);
+
+           
+            precomputeFactorials(200005); 
+
+            let outputLines = [];
+
+            for (let i = 0; i < t; i++) {
+                const [n, k] = lines[lineIndex++].split(' ').map(Number);
+                const s = lines[lineIndex++].split(' ').map(Number);
+
+                let numOnes = 0;
+                let numZeros = 0;
+                for (let val of s) {
+                    if (val === 1) {
+                        numOnes++;
+                    } else {
+                        numZeros++;
+                    }
+                }
+
+                let totalMedianSum = 0;
+                const targetOnes = Math.floor((k + 1) / 2);
+
+                for (let currentOnes = targetOnes; currentOnes <= k; currentOnes++) {
+                    const currentZeros = k - currentOnes;
+
+                    if (currentOnes <= numOnes && currentZeros <= numZeros) {
+                        let waysToChooseOnes = nCr(numOnes, currentOnes);
+                        let waysToChooseZeros = nCr(numZeros, currentZeros);
+                        
+                        let combinations = (waysToChooseOnes * waysToChooseZeros) % MOD;
+                        totalMedianSum = (totalMedianSum + combinations) % MOD;
+                    }
+                }
+                outputLines.push(totalMedianSum);
+            }
+            return outputLines.join('\n');
+        }
+
+        function runChallenge() {
+            const inputArea = document.getElementById('inputArea');
+            const outputArea = document.getElementById('outputArea');
+            const inputText = inputArea.value;
+            const output = solveChallenge(inputText);
+            outputArea.textContent = output;
+        }
+    </script>
+</body>
+</html>
